@@ -122,3 +122,22 @@ function Get-DBAllocation {
         else { Invoke-AzureCommand -ScriptBlock $MyScriptBlock -AllSubscriptions:$AllSubscriptions }
     }
 }
+
+Function New-Route {
+    param(
+        $MaxRoutesPerRouteTable = 400
+    )
+
+    $location = (Get-AzLocation | ogv -PassThru -Title "Select the location").location
+    $serviceTagRaw = (Get-AzNetworkServiceTag -Location $location).Values | ogv -PassThru -Title "Select the Network Service Tag"
+    $RouteTable = Get-AzRouteTable | ogv -PassThru -Title "Select the Route Table to modify"
+    If ((Get-AzRouteTable -ResourceGroupName $($RouteTable.ResourceGroupName) -Name $($RouteTable.Name)).routes.count + $($serviceTagRaw.properties.addressprefixes).count -gt $MaxRoutesPerRouteTable ) {
+        Write-Error "This action would add more than $MaxRoutesPerRouteTable to the table.  No routes have been added."
+    }
+    Else {
+        ForEach ($AddressPrefix in $($serviceTagRaw.properties.addressprefixes)) {
+            $RouteName = $($serviceTagRaw.name) + $($AddressPrefix.split('/')[0])
+            (Get-AzRouteTable -ResourceGroupName $($RouteTable.ResourceGroupName) -Name $($RouteTable.Name) | Add-AzRouteConfig -Name $RouteName -AddressPrefix $AddressPrefix -NextHopType Internet | Set-AzRouteTable).Routes | Where { $_.Name -eq $RouteName } #| FT Name, ProvisioningState, AddressPrefix, NextHopType, NextHotIPAddress
+        }
+    }
+}
