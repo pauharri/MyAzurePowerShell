@@ -44,7 +44,7 @@ function Get-UnusedPIPs {
     begin {
         $MyScriptBlock = {
             Get-AzPublicIpAddress | Where-Object {
-                $_.IpConfiguration.Id -eq $null
+                $null -eq $_.IpConfiguration.Id
             } | Select-Object @{ N = "Subscription"; E = { (Get-AzContext).Subscription.Name } }, ResourceGroupName, Location, Name, Id, PublicIpAllocationMethod, PublicIpAddressVersion, IpAddress
         }
     }
@@ -66,7 +66,7 @@ function Get-UnusedNICs {
     begin {
         $MyScriptBlock = {
             Get-AzDisk | Where-Object {
-                $_.ManagedBy -eq $null
+                $null -eq $_.ManagedBy
             } | Select-Object @{N = "Subscription"; E = { (Get-AzContext).Subscription.Name } }, ResourceGroupName, ManagedBy, DiskState, OsType, Location, DiskSizeGB, Id, Name    
         }
     }
@@ -89,7 +89,7 @@ function Get-UnusedNICs {
     begin {
         $MyScriptBlock = {
             Get-AzDisk | Where-Object{
-                $_.ManagedBy -eq $null
+                $null -eq $_.ManagedBy
             } | Select-Object @{N="Subscription";E={(Get-AzContext).Subscription.Name}}, ResourceGroupName, ManagedBy, DiskState, OsType, Location, DiskSizeGB, Id, Name
         }
     }
