@@ -143,7 +143,7 @@ Function New-Route {
 }
 
 
-function Get-ExtraGBPaidFor {
+function Get-ExtraDiskGBPaidFor {
     [CmdletBinding()]
     param (
         [Switch]
@@ -180,9 +180,13 @@ function Get-ExtraGBPaidFor {
                 Write-Error "Disk size too big"
             }
             Else{
-                For($i = 0;$i -lt $($allowedDiskSizes.Count -1);$i++){
-                    If(($($disk.diskSizeGB) -gt $allowedDiskSizes[$i]) -and ($($disk.diskSizeGB) -lt $allowedDiskSizes[($i+1)])){
-                        $allowedDiskSizes[$i+1]-$($disk.diskSizeGB)
+                If(($($disk.diskSizeGB) -lt $allowedDiskSizes[0])){
+                    $allowedDiskSizes[0] - $($disk.diskSizeGB)
+                }Else{
+                    For($i = 0;$i -lt $($allowedDiskSizes.Count -1);$i++){
+                        If(($($disk.diskSizeGB) -gt $allowedDiskSizes[$i]) -and ($($disk.diskSizeGB) -lt $allowedDiskSizes[($i+1)])){
+                            $allowedDiskSizes[$i+1]-$($disk.diskSizeGB)
+                        }
                     }
                 }
             }
@@ -196,3 +200,6 @@ function Get-ExtraGBPaidFor {
         else { Invoke-AzureCommand -ScriptBlock $MyScriptBlock -AllSubscriptions:$AllSubscriptions }
     }
 }
+
+
+
