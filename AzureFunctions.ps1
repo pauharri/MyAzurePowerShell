@@ -22,7 +22,7 @@ function Invoke-AzureCommand {
     Invoke-AzureCommand -AllSubscriptions -ScriptBlock $DiskScriptBlock | FT ResourceGroupName, Name, DiskSizeGB
 
     This example finds every disk larger than 512 GB in every subscription
-    
+
 .INPUTS
     ScriptBlock
 
@@ -81,10 +81,10 @@ function Get-UnusedPIPs {
     Specifies the subscription to run against. The default is the current subscription.
 
 .EXAMPLE
-     Get-UnusedPIPs -AllSubscriptions
+    Get-UnusedPIPs -AllSubscriptions
 
 .EXAMPLE
-     Get-UnusedPIPs
+    Get-UnusedPIPs -AllSubscriptions | Export-Csv UnusedPIPs.csv -NoTypeInformation
 
 .INPUTS
     String
@@ -134,10 +134,10 @@ function Get-UnusedNICs {
     Specifies the subscription to run against. The default is the current subscription.
 
 .EXAMPLE
-     Get-UnusedNICs -AllSubscriptions
+    Get-UnusedNICs -AllSubscriptions
 
 .EXAMPLE
-     Get-UnusedNICs
+    Get-UnusedNICs -AllSubscriptions | Export-Csv UnusedNICs.csv -NoTypeInformation
 
 .INPUTS
     String
@@ -188,10 +188,10 @@ function Get-DBAllocation {
     Specifies the subscription to run against. The default is the current subscription.
 
 .EXAMPLE
-     Get-DBAllocation -AllSubscriptions
+    Get-DBAllocation -AllSubscriptions
 
 .EXAMPLE
-     Get-DBAllocation
+    Get-DBAllocation -AllSubscriptions | Export-Csv DBAllocation.csv -NoTypeInformation
 
 .INPUTS
     String
@@ -290,7 +290,7 @@ function Get-ExtraDiskGBPaidFor {
      Get-ExtraDiskGBPaidFor -AllSubscriptions
 
 .EXAMPLE
-     Get-ExtraDiskGBPaidFor
+     Get-ExtraDiskGBPaidFor -AllSubscriptions | Export-Csv ExtraDiskGBPaidFor.csv -NoTypeInformation
 
 .INPUTS
     String
@@ -379,7 +379,7 @@ Function Get-NonCompliantResources {
      Get-NonCompliantResources -AllSubscriptions
 
 .EXAMPLE
-     Get-NonCompliantResources
+     Get-NonCompliantResources -AllSubscriptions | Export-Csv NonCompliantResources-Policy1.csv -NoTypeInformation
 
 .INPUTS
     String
