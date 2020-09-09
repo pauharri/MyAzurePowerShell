@@ -66,7 +66,7 @@ function Invoke-AzureCommand {
 }
 
 function Get-UnusedPIPs {
-<#
+    <#
 .SYNOPSIS
     Gets a list of unused Public IPs in the environment.
 
@@ -118,7 +118,7 @@ function Get-UnusedPIPs {
 
 
 function Get-UnusedNICs {
-<#
+    <#
 .SYNOPSIS
     Gets a list of unused NICs in the environment.
 
@@ -158,9 +158,9 @@ function Get-UnusedNICs {
     )
     begin {
         $MyScriptBlock = {
-            Get-AzDisk | Where-Object{
+            Get-AzDisk | Where-Object {
                 $null -eq $_.ManagedBy
-            } | Select-Object @{N="Subscription";E={(Get-AzContext).Subscription.Name}}, ResourceGroupName, ManagedBy, DiskState, OsType, Location, DiskSizeGB, Id, Name
+            } | Select-Object @{N = "Subscription"; E = { (Get-AzContext).Subscription.Name } }, ResourceGroupName, ManagedBy, DiskState, OsType, Location, DiskSizeGB, Id, Name
         }
     }
     process {
@@ -213,9 +213,9 @@ function Get-DBAllocation {
     begin {
         $MyScriptBlock = {
             Get-AzSqlServer | Get-AzSqlDatabase | `
-            Select-Object @{N="Subscription";E={(Get-AzContext).Subscription.Name}}, ResourceGroupName, ServerName, DatabaseName, DatabaseId, CurrentServiceObjectiveName, Capacity, `
-            Family, SkuName, LicenseType, Location, ZoneRedundant, `
-            @{N="MaxCPU";E={((Get-AzMetric -WarningAction 0 -ResourceId $_.ResourceId -MetricName cpu_percent -TimeGrain 01:00:00 -StartTime ((Get-Date).AddDays(-14)) -EndTime (Get-Date) -AggregationType Maximum | select -ExpandProperty Data).maximum | measure -Maximum).Maximum}}
+                Select-Object @{N = "Subscription"; E = { (Get-AzContext).Subscription.Name } }, ResourceGroupName, ServerName, DatabaseName, DatabaseId, CurrentServiceObjectiveName, Capacity, `
+                Family, SkuName, LicenseType, Location, ZoneRedundant, `
+            @{N = "MaxCPU"; E = { ((Get-AzMetric -WarningAction 0 -ResourceId $_.ResourceId -MetricName cpu_percent -TimeGrain 01:00:00 -StartTime ((Get-Date).AddDays(-14)) -EndTime (Get-Date) -AggregationType Maximum | Select-Object -ExpandProperty Data).maximum | Measure-Object -Maximum).Maximum } }
         }
     }
     process {
@@ -256,23 +256,23 @@ Function New-Route {
         $MaxRoutesPerRouteTable = 400
     )
 
-    $location = (Get-AzLocation | ogv -PassThru -Title "Select the location").location
-    $serviceTagRaw = (Get-AzNetworkServiceTag -Location $location).Values | ogv -PassThru -Title "Select the Network Service Tag"
-    $RouteTable = Get-AzRouteTable | ogv -PassThru -Title "Select the Route Table to modify"
+    $location = (Get-AzLocation | Out-GridView -PassThru -Title "Select the location").location
+    $serviceTagRaw = (Get-AzNetworkServiceTag -Location $location).Values | Out-GridView -PassThru -Title "Select the Network Service Tag"
+    $RouteTable = Get-AzRouteTable | Out-GridView -PassThru -Title "Select the Route Table to modify"
     If ((Get-AzRouteTable -ResourceGroupName $($RouteTable.ResourceGroupName) -Name $($RouteTable.Name)).routes.count + $($serviceTagRaw.properties.addressprefixes).count -gt $MaxRoutesPerRouteTable ) {
         Write-Error "This action would add more than $MaxRoutesPerRouteTable to the table.  No routes have been added."
     }
     Else {
         ForEach ($AddressPrefix in $($serviceTagRaw.properties.addressprefixes)) {
             $RouteName = $($serviceTagRaw.name) + $($AddressPrefix.split('/')[0])
-            (Get-AzRouteTable -ResourceGroupName $($RouteTable.ResourceGroupName) -Name $($RouteTable.Name) | Add-AzRouteConfig -Name $RouteName -AddressPrefix $AddressPrefix -NextHopType Internet | Set-AzRouteTable).Routes | Where { $_.Name -eq $RouteName } #| FT Name, ProvisioningState, AddressPrefix, NextHopType, NextHotIPAddress
+            (Get-AzRouteTable -ResourceGroupName $($RouteTable.ResourceGroupName) -Name $($RouteTable.Name) | Add-AzRouteConfig -Name $RouteName -AddressPrefix $AddressPrefix -NextHopType Internet | Set-AzRouteTable).Routes | Where-Object { $_.Name -eq $RouteName } #| FT Name, ProvisioningState, AddressPrefix, NextHopType, NextHotIPAddress
         }
     }
 }
 
 
 function Get-ExtraDiskGBPaidFor {
-<#
+    <#
 .SYNOPSIS
     Gets every disk and returns how much space is paid for but not allocated.
 
@@ -311,45 +311,48 @@ function Get-ExtraDiskGBPaidFor {
     )
 
     begin {
-        Function Get-ExtraGBPaidForHelper{
+        Function Get-ExtraGBPaidForHelper {
             param(
                 $disk
             )
-            $PList = @(4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32767) #premium ssd
-            $EList = @(4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32767) #standard ssd
-            $SList = @(32,64,128,256,512,1024,2048,4096,8192,16384,32767) #standard hdd
+            $PList = @(4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32767) #premium ssd
+            $EList = @(4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32767) #standard ssd
+            $SList = @(32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32767) #standard hdd
         
-            If($($disk.sku.Name) -like "*UltraSSD*"){
+            If ($($disk.sku.Name) -like "*UltraSSD*") {
                 0
             }
-            ElseIf($($disk.sku.Name) -like "*Premium*"){
+            ElseIf ($($disk.sku.Name) -like "*Premium*") {
                 $allowedDiskSizes = $PList
-            }Elseif($($disk.sku.Name) -like "*StandardSSD*"){
+            }
+            Elseif ($($disk.sku.Name) -like "*StandardSSD*") {
                 $allowedDiskSizes = $EList
-            }Elseif($($disk.sku.Name) -like "*Standard*"){
+            }
+            Elseif ($($disk.sku.Name) -like "*Standard*") {
                 $allowedDiskSizes = $SList
             }
         
-            If($allowedDiskSizes -contains $($disk.diskSizeGB)){
+            If ($allowedDiskSizes -contains $($disk.diskSizeGB)) {
                 0
             }
-            Elseif($($disk.diskSizeGB) -gt $($allowedDiskSizes[$allowedDiskSizes.Count - 1])){
+            Elseif ($($disk.diskSizeGB) -gt $($allowedDiskSizes[$allowedDiskSizes.Count - 1])) {
                 Write-Error "Disk size too big"
             }
-            Else{
-                If(($($disk.diskSizeGB) -lt $allowedDiskSizes[0])){
+            Else {
+                If (($($disk.diskSizeGB) -lt $allowedDiskSizes[0])) {
                     $allowedDiskSizes[0] - $($disk.diskSizeGB)
-                }Else{
-                    For($i = 0;$i -lt $($allowedDiskSizes.Count -1);$i++){
-                        If(($($disk.diskSizeGB) -gt $allowedDiskSizes[$i]) -and ($($disk.diskSizeGB) -lt $allowedDiskSizes[($i+1)])){
-                            $allowedDiskSizes[$i+1]-$($disk.diskSizeGB)
+                }
+                Else {
+                    For ($i = 0; $i -lt $($allowedDiskSizes.Count - 1); $i++) {
+                        If (($($disk.diskSizeGB) -gt $allowedDiskSizes[$i]) -and ($($disk.diskSizeGB) -lt $allowedDiskSizes[($i + 1)])) {
+                            $allowedDiskSizes[$i + 1] - $($disk.diskSizeGB)
                         }
                     }
                 }
             }
         }
         $MyScriptBlock = {
-            Get-AzDisk | select @{ N = "Subscription"; E = { (Get-AzContext).Subscription.Name } },ResourceGroupName, Name, Id, OsType, DiskSizeGB, @{N="ExtraGBPaidFor";E={Get-ExtraGBPaidForHelper -disk $_}}
+            Get-AzDisk | Select-Object @{ N = "Subscription"; E = { (Get-AzContext).Subscription.Name } }, ResourceGroupName, Name, Id, OsType, DiskSizeGB, @{N = "ExtraGBPaidFor"; E = { Get-ExtraGBPaidForHelper -disk $_ } }
         }        
     }
     process {
