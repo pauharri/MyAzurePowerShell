@@ -398,11 +398,19 @@ Function Get-NonCompliantResources {
         [Switch]
         $AllSubscriptions,
     
-        [Parameter(ValueFromPipeline = $true)]
-        $Subscription
+        [Parameter]
+        $Subscription,
+
+        [parameter(ValueFromPipeline = $true)]
+        $PolicyDefinitionID
     )
     begin {
-        $PolicyDefinitionID = (Get-AzPolicyDefinition | Select-Object * -ExpandProperty Properties | Out-GridView -PassThru -Title "Select the Policy to check for compliance.").ResourceId
+        If ($Null -eq $PolicyDefinitionID) {
+            $PolicyDefinitionID = (Get-AzPolicyDefinition | Select-Object * -ExpandProperty Properties | Out-GridView -PassThru -Title "Select the Policy to check for compliance.").ResourceId
+        }
+        ElseIf ((Get-AzPolicyDefinition -Id $PolicyDefinitionID) -is [array]) { #If a PolicyDefinitionID is passed at the CLI and is malformed then this will return an array and re-prompt the user for a correct value
+            $PolicyDefinitionID = @()
+        }
         While ($PolicyDefinitionID -is [array]) {
             Write-Warning "Only one Policy may be selected at a time."
             $PolicyDefinitionID = (Get-AzPolicyDefinition | Select-Object * -ExpandProperty Properties | Out-GridView -PassThru  -Title "Select the Policy to check for compliance.").ResourceId
