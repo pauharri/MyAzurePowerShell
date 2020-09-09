@@ -202,4 +202,27 @@ function Get-ExtraDiskGBPaidFor {
 }
 
 
-
+Function Get-NonCompliantResources {
+    [CmdletBinding()]
+    param (
+        [Switch]
+        $AllSubscriptions,
+    
+        [Parameter(ValueFromPipeline = $true)]
+        $Subscription
+    )
+    begin {
+        $PolicyDefinitionID = (Get-AzPolicyDefinition | Select-Object * -ExpandProperty Properties | Out-GridView -PassThru -Title "Select the Policy to check for compliance.").ResourceId
+        While ($PolicyDefinitionID -is [array]) {
+            Write-Warning "Only one Policy may be selected at a time."
+            $PolicyDefinitionID = (Get-AzPolicyDefinition | Select-Object * -ExpandProperty Properties | Out-GridView -PassThru  -Title "Select the Policy to check for compliance.").ResourceId
+        }
+        $MyScriptBlock = {
+            Get-AzPolicyState -Filter "PolicyDefinitionId eq '$PolicyDefinitionID' AND ComplianceState eq 'NonCompliant'" |  Get-AzResource | Select-Object @{N = "Subscription"; E = { (Get-AzContext).Subscription.Name } }, ResourceGroupName, ResourceName, ResourceId
+        }
+    }
+    process {
+        if ($Subscription) { $Subscription | Invoke-AzureCommand -ScriptBlock $MyScriptBlock }
+        else { Invoke-AzureCommand -ScriptBlock $MyScriptBlock -AllSubscriptions:$AllSubscriptions }
+    }
+}
