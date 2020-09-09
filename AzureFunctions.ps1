@@ -378,11 +378,17 @@ Function Get-NonCompliantResources {
 .PARAMETER Subscription
     Specifies the subscription to run against. The default is the current subscription.
 
-.EXAMPLE
-     Get-NonCompliantResources -AllSubscriptions
+.PARAMETER PolicyDefinitionId
+    Specifies the PolicyDefinitionId of the policy to check for compliance against.
 
 .EXAMPLE
-     Get-NonCompliantResources -AllSubscriptions | Export-Csv NonCompliantResources-Policy1.csv -NoTypeInformation
+    Get-NonCompliantResources -AllSubscriptions
+
+.EXAMPLE
+    Get-NonCompliantResources -AllSubscriptions | Export-Csv NonCompliantResources-Policy1.csv -NoTypeInformation
+
+.EXAMPLE
+    Get-NonCompliantResources -AllSubscriptions -PolicyDefinitionID '/providers/Microsoft.Authorization/policyDefinitions/34c877ad-507e-4c82-993e-3452a6e0ad3c' | Export-Csv .\StorageAccountsShouldRestrictNetworkAccess2.csv -NoTypeInformation
 
 .INPUTS
     String
