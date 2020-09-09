@@ -1,4 +1,37 @@
 function Invoke-AzureCommand {
+    <#
+.SYNOPSIS
+    Runs a script block against every subscription or a different subscription than
+    the current context.
+
+.DESCRIPTION
+    Invoke-AzureCommand runs a script block against a different context or every 
+    subscription.  
+
+.PARAMETER AllSubscriptions
+    Run this command against all subscriptions.
+
+.PARAMETER Subscription
+    Specifies the subscription to run against. The default is the current subscription.
+
+.EXAMPLE
+     Invoke-AllSubs -ScriptBlock ([scriptblock]::Create('write-host "hello world from $((get-azcontext).name)"'))
+
+.EXAMPLE
+     $DiskScriptBlock = {Get-AzDisk | Where{$_.DiskSizeGB -gt 512}}
+    Invoke-AzureCommand -AllSubscriptions -ScriptBlock $DiskScriptBlock | FT ResourceGroupName, Name, DiskSizeGB
+
+    This example finds every disk larger than 512 GB in every subscription
+    
+.INPUTS
+    ScriptBlock
+
+.OUTPUTS
+    Array
+
+.NOTES
+    Author:  Paul Harrison
+#>
     [CmdletBinding()]
     param (
         [ScriptBlock]
@@ -33,6 +66,35 @@ function Invoke-AzureCommand {
 }
 
 function Get-UnusedPIPs {
+<#
+.SYNOPSIS
+    Gets a list of unused Public IPs in the environment.
+
+.DESCRIPTION
+    Get-UnusedPIPs is a function that returns a list of Public IPs that do not have a
+    IPConfiguration.ID defined in the environment.  
+
+.PARAMETER AllSubscriptions
+    Run this command against all subscriptions.
+
+.PARAMETER Subscription
+    Specifies the subscription to run against. The default is the current subscription.
+
+.EXAMPLE
+     Get-UnusedPIPs -AllSubscriptions
+
+.EXAMPLE
+     Get-UnusedPIPs
+
+.INPUTS
+    String
+
+.OUTPUTS
+    Selected.Microsoft.Azure.Commands.Network.Models.PSPublicIpAddress
+
+.NOTES
+    Author:  Paul Harrison
+#>
     [CmdletBinding()]
     param (
         [Switch]
@@ -54,30 +116,38 @@ function Get-UnusedPIPs {
     }
 }
 
-function Get-UnusedNICs {
-    [CmdletBinding()]
-    param (
-        [Switch]
-        $AllSubscriptions,
-    
-        [Parameter(ValueFromPipeline = $true)]
-        $Subscription
-    )
-    begin {
-        $MyScriptBlock = {
-            Get-AzDisk | Where-Object {
-                $null -eq $_.ManagedBy
-            } | Select-Object @{N = "Subscription"; E = { (Get-AzContext).Subscription.Name } }, ResourceGroupName, ManagedBy, DiskState, OsType, Location, DiskSizeGB, Id, Name    
-        }
-    }
-    process {
-        if ($Subscription) { $Subscription | Invoke-AzureCommand -ScriptBlock $MyScriptBlock }
-        else { Invoke-AzureCommand -ScriptBlock $MyScriptBlock -AllSubscriptions:$AllSubscriptions }
-    }
-}
-
 
 function Get-UnusedNICs {
+<#
+.SYNOPSIS
+    Gets a list of unused NICs in the environment.
+
+.DESCRIPTION
+    Get-UnusedNICs is a function that returns a list of NICs that are not attached
+    in the environment.  This can occur when VMs are deleted but not the NICs attached
+    to the VM.  
+
+.PARAMETER AllSubscriptions
+    Run this command against all subscriptions.
+
+.PARAMETER Subscription
+    Specifies the subscription to run against. The default is the current subscription.
+
+.EXAMPLE
+     Get-UnusedNICs -AllSubscriptions
+
+.EXAMPLE
+     Get-UnusedNICs
+
+.INPUTS
+    String
+
+.OUTPUTS
+    Selected.Microsoft.Azure.Commands.Compute.Automation.Models.PSDiskList
+
+.NOTES
+    Author:  Paul Harrison
+#>
     [CmdletBinding()]
     param (
         [Switch]
@@ -101,6 +171,37 @@ function Get-UnusedNICs {
 
 
 function Get-DBAllocation {
+    <#
+.SYNOPSIS
+    Gets every Azure DB and returns key information to help make choices about
+    reducing the cost of your SQL DBs.
+
+.DESCRIPTION
+    Get-DBAllocation is a function that returns a list of Azure SQL DBs and
+    the maximum cpu_percent over the past 14 days,how the licenses are being 
+    paid for, and how many CPUs are allocated.  
+
+.PARAMETER AllSubscriptions
+    Run this command against all subscriptions.
+
+.PARAMETER Subscription
+    Specifies the subscription to run against. The default is the current subscription.
+
+.EXAMPLE
+     Get-DBAllocation -AllSubscriptions
+
+.EXAMPLE
+     Get-DBAllocation
+
+.INPUTS
+    String
+
+.OUTPUTS
+    Selected.Microsoft.Azure.Commands.Sql.Database.Model.AzureSqlDatabaseModel
+
+.NOTES
+    Author:  Paul Harrison
+#>
     [CmdletBinding()]
     param (
         [Switch]
@@ -124,6 +225,33 @@ function Get-DBAllocation {
 }
 
 Function New-Route {
+    <#
+.SYNOPSIS
+    Creates a new UDR to allow traffic to an Azure Service
+
+.DESCRIPTION
+    New-Route provides a GUI and automation to add all the routes needed
+    for a UDR for access to a particular service endpoint.  
+
+.PARAMETER MaxRoutesPerRouteTable
+    The current limitation for routes per route table is 400.  If that limit 
+    is changed then override that limit by using this parameter.
+
+.EXAMPLE
+     New-Route
+
+.EXAMPLE
+     New-Route -MaxRoutePerRouteTable 500
+
+.INPUTS
+    Int32
+
+.OUTPUTS
+    Microsoft.Azure.Commands.Network.Models.PSRoute
+
+.NOTES
+    Author:  Paul Harrison
+#>
     param(
         $MaxRoutesPerRouteTable = 400
     )
@@ -144,6 +272,35 @@ Function New-Route {
 
 
 function Get-ExtraDiskGBPaidFor {
+<#
+.SYNOPSIS
+    Gets every disk and returns how much space is paid for but not allocated.
+
+.DESCRIPTION
+    Get-ExtraDiskGBPaidFor is a function that returns a list of Azure Disks and
+    the size in GB that is being paid for but is not currently allocated.  
+
+.PARAMETER AllSubscriptions
+    Run this command against all subscriptions.
+
+.PARAMETER Subscription
+    Specifies the subscription to run against. The default is the current subscription.
+
+.EXAMPLE
+     Get-ExtraDiskGBPaidFor -AllSubscriptions
+
+.EXAMPLE
+     Get-ExtraDiskGBPaidFor
+
+.INPUTS
+    String
+
+.OUTPUTS
+    Selected.Microsoft.Azure.Commands.Compute.Automation.Models.PSDiskList
+
+.NOTES
+    Author:  Paul Harrison
+#>
     [CmdletBinding()]
     param (
         [Switch]
@@ -203,6 +360,36 @@ function Get-ExtraDiskGBPaidFor {
 
 
 Function Get-NonCompliantResources {
+    <#
+.SYNOPSIS
+    Prompts the user to select an Azure Policy then returns a list of resources 
+    that are not comnpliant with the policy.
+
+.DESCRIPTION
+    Get-NonCompliantResources is a function that returns a list of resources that 
+    are not compliaint with the policy that the user selects.  
+
+.PARAMETER AllSubscriptions
+    Run this command against all subscriptions.
+
+.PARAMETER Subscription
+    Specifies the subscription to run against. The default is the current subscription.
+
+.EXAMPLE
+     Get-NonCompliantResources -AllSubscriptions
+
+.EXAMPLE
+     Get-NonCompliantResources
+
+.INPUTS
+    String
+
+.OUTPUTS
+    Selected.Microsoft.Azure.Commands.ResourceManager.Cmdlets.SdkModels.PSResource
+
+.NOTES
+    Author:  Paul Harrison
+#>
     [CmdletBinding()]
     param (
         [Switch]
