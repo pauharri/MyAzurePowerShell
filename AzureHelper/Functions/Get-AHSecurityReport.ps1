@@ -1,29 +1,40 @@
-Function Get-AHComplianceReport {
+
+Function Get-AHSecurityReport {
     <#
 .SYNOPSIS
-    Prompts the user to select an Azure Policy then returns a list of resources 
-    that are not comnpliant with the policy.
+    Retrieves a list of changes that can be made to a subscription to be more secure.
+
 .DESCRIPTION
-    Get-NonCompliantResources is a function that returns a list of resources that 
-    are not compliaint with the policy that the user selects.  
+    Get-SavingsReport is a function that compiles a list of changes for each subscription
+    to cut costs utilizing other functions in the AzureHelper module. The list of items
+    that is checks is defined in $Script:PolicyDefinitionIDs and is accessed through 
+    commands found in the Related section 
+
 .PARAMETER AllSubscriptions
     Run this command against all subscriptions.
+
 .PARAMETER Subscription
     Specifies the subscription to run against. The default is the current subscription.
-.PARAMETER PolicyDefinitionId
-    Specifies the PolicyDefinitionId of the policy to check for compliance against.
+
+.PARAMETER ReportPath
+    Specifies the path the report should be output to
+
 .EXAMPLE
     Get-NonCompliantResources -AllSubscriptions
-.EXAMPLE
-    Get-NonCompliantResources -AllSubscriptions | Export-Csv NonCompliantResources-Policy1.csv -NoTypeInformation
-.EXAMPLE
-    Get-NonCompliantResources -AllSubscriptions -PolicyDefinitionID '/providers/Microsoft.Authorization/policyDefinitions/34c877ad-507e-4c82-993e-3452a6e0ad3c' | Export-Csv .\StorageAccountsShouldRestrictNetworkAccess2.csv -NoTypeInformation
+
 .INPUTS
     String
+
 .OUTPUTS
     Selected.Microsoft.Azure.Commands.ResourceManager.Cmdlets.SdkModels.PSResource
+
 .NOTES
     Author:  Paul Harrison
+
+    Related Cmdlets:
+        Add-AHPolicyToReport
+        Get-AHPolicyToReport
+        Remove-AHPolicyToReport
 #>
     [CmdletBinding()]
     param (
@@ -57,8 +68,7 @@ Function Get-AHComplianceReport {
                 }
                 $ReportName = $ReportPath + (Get-AzContext).name.split('(')[0].replace(' ', '') + '-Security-' + $PolicyName + '.csv'
 
-                #Get-NonCompliantResources -PolicyDefinitionID $PolicyId | Export-Csv $ReportName -NoTypeInformation
-                Get-AHResourceCompliance -PolicyDefinitionID $PolicyId -Compliance NonCompliant | Export-Csv $ReportName -NoTypeInformation
+                Get-NonCompliantResources -PolicyDefinitionID $PolicyId | Export-Csv $ReportName -NoTypeInformation
             }
         }
     }
@@ -66,4 +76,5 @@ Function Get-AHComplianceReport {
         if ($Subscription) { $Subscription | Invoke-AzureCommand -ScriptBlock $MyScriptBlock }
         else { Invoke-AzureCommand -ScriptBlock $MyScriptBlock -AllSubscriptions:$AllSubscriptions }
     }
+
 }

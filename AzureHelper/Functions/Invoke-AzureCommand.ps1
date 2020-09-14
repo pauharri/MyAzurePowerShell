@@ -32,12 +32,17 @@ function Invoke-AzureCommand {
         $Subscription,
     
         [switch]
-        $AllSubscriptions
+        $AllSubscriptions,
+
+        [array]
+        $ArgumentList
     )
 
     process {
+        Write-Host "In Invoke-AzureCommand ArgumentList = $ArgumentList"
+
         if (-not $AllSubscriptions -and -not $Subscription) {
-            return $ScriptBlock.Invoke()
+            return $ScriptBlock.Invoke($ArgumentList)
         }
     
         $currentSub = Get-AzContext
@@ -47,9 +52,9 @@ function Invoke-AzureCommand {
     
         $subCount = 0
         foreach ($sub in $subs) {
-            Set-AzContext $sub | Out-Null
+            $Null = Set-AzContext $sub
             Write-Progress -Activity "Checking each subscription" -Status (Get-AzContext).Subscription.Name -PercentComplete (100 * $subCount / $($subs.count))
-            $ScriptBlock.Invoke()
+            $ScriptBlock.Invoke($ArgumentList)
             $subCount++
         }
         $null = Set-AzContext $currentSub

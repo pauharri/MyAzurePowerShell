@@ -1,4 +1,4 @@
-Function Get-AHComplianceReport {
+Function Get-AHResourceCompliance {
     <#
 .SYNOPSIS
     Prompts the user to select an Azure Policy then returns a list of resources 
@@ -29,37 +29,33 @@ Function Get-AHComplianceReport {
     param (
         [Switch]
         $AllSubscriptions,
-
-        [Parameter(ValueFromPipeline = $true)]
+    
+        [Parameter]
         $Subscription,
 
-        [string]
-        $ReportPath = ".\"
+        [parameter(ValueFromPipeline = $true)]
+        $PolicyDefinitionID,
+
+        [string]    
+        [ValidateSet('NonCompliant', 'Compliant')]
+        $Compliance = 'NonCompliant'
     )
     begin {
-        #Validate there are PolicyIDs defined to run against
-        If ($Null -eq $Script:PolicyDefinitionIDs) {
-            throw { "No PolicyDefinitionIDs defined.  Use Add-AHPolicyToReport to add additional policies." }
-        }
-        #validate ReportPath here
-        If (!(Test-Path $ReportPath)) {
-            Throw("Invalid Path")
-        }
-        Else {
-            $ReportPath = (Convert-Path $ReportPath) + '\' 
-        }
+        Write-Host $PolicyDefinitionID
 
+        If ($Null -eq $PolicyDefinitionID) {
+            $PolicyDefinitionID = (Get-AzPolicyDefinition | Select-Object * -ExpandProperty Properties | Out-GridView -PassThru -Title "Select the Policy to check for compliance.").ResourceId
+        }
+        ElseIf ((Get-AzPolicyDefinition -Id $PolicyDefinitionID) -is [array]) {
+            #If a PolicyDefinitionID is passed at the CLI and is malformed then this will return an array and re-prompt the user for a correct value
+            $PolicyDefinitionID = @()
+        }
+        While ($PolicyDefinitionID -is [array]) {
+            Write-Warning "Only one Policy may be selected at a time."
+            #$PolicyDefinitionID = (Get-AzPolicyDefinition | Select-Object * -ExpandProperty Properties | Out-GridView -PassThru  -Title "Select the Policy to check for compliance.").ResourceId
+        }
         $MyScriptBlock = {
-            ForEach ($PolicyId in $Script:PolicyDefinitionIDs) {
-                $PolicyName = (Get-AzPolicyDefinition -Id $PolicyId).Properties.Displayname.replace(' ', '')
-                If ($PolicyName.length -gt 35) {
-                    $PolicyName = $PolicyName.substring(0, 35)
-                }
-                $ReportName = $ReportPath + (Get-AzContext).name.split('(')[0].replace(' ', '') + '-Security-' + $PolicyName + '.csv'
-
-                #Get-NonCompliantResources -PolicyDefinitionID $PolicyId | Export-Csv $ReportName -NoTypeInformation
-                Get-AHResourceCompliance -PolicyDefinitionID $PolicyId -Compliance NonCompliant | Export-Csv $ReportName -NoTypeInformation
-            }
+            Get-AzPolicyState -Filter "PolicyDefinitionId eq '$PolicyDefinitionID' AND ComplianceState eq '$Compliance'" |  Get-AzResource | Select-Object @{N = "Subscription"; E = { (Get-AzContext).Subscription.Name } }, ResourceGroupName, ResourceName, ResourceId
         }
     }
     process {
