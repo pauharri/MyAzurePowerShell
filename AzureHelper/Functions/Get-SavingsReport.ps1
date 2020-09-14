@@ -1,11 +1,11 @@
 
-Function Get-SavingsReport {
+Function Get-AHSavingsReport {
     <#
 .SYNOPSIS
     Retrieves a list of changes that can be made to a subscription to cut costs
 
 .DESCRIPTION
-    Get-SavingsReport is a function that compiles a list of changes for each subscription
+    Get-AHSavingsReport is a function that compiles a list of changes for each subscription
     to cut costs utilizing other functions in the AzureHelper module.  
 
 .PARAMETER AllSubscriptions
@@ -102,8 +102,7 @@ Function Get-SavingsReport {
     }
     process {
         if ($Subscription) { $Subscription | Invoke-AzureCommand -ScriptBlock $MyScriptBlock -ArgumentList $ArgumentList }
-        elseif ($AllSubscriptions) { Invoke-AzureCommand -ScriptBlock $MyScriptBlock -AllSubscriptions:$AllSubscriptions -ArgumentList $ArgumentList }
-        Else { $MyScriptBlock.Invoke($ArgumentList) } 
+        else { Invoke-AzureCommand -ScriptBlock $MyScriptBlock -AllSubscriptions:$AllSubscriptions -ArgumentList $ArgumentList }
     }
 
 }
