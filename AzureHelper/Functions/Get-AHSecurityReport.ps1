@@ -5,10 +5,10 @@ Function Get-AHSecurityReport {
     Retrieves a list of changes that can be made to a subscription to be more secure.
 
 .DESCRIPTION
-    Get-SavingsReport is a function that compiles a list of changes for each subscription
-    to cut costs utilizing other functions in the AzureHelper module. The list of items
-    that is checks is defined in $Script:PolicyDefinitionIDs and is accessed through 
-    commands found in the Related section 
+    Get-AHSecurityReport is a function that compiles a list of changes for each subscription
+    to increase security utilizing other functions in the AzureHelper module. The list of items
+    that is checked is defined in $Script:PolicyDefinitionIDs and is accessed through 
+    commands found in the LINK section 
 
 .PARAMETER AllSubscriptions
     Run this command against all subscriptions.
@@ -26,15 +26,16 @@ Function Get-AHSecurityReport {
     String
 
 .OUTPUTS
-    Selected.Microsoft.Azure.Commands.ResourceManager.Cmdlets.SdkModels.PSResource
+    CSV Files
 
 .NOTES
     Author:  Paul Harrison
 
-    Related Cmdlets:
+.LINK
         Add-AHPolicyToReport
         Get-AHPolicyToReport
         Remove-AHPolicyToReport
+        Get-AHComplianceReport
 #>
     [CmdletBinding()]
     param (
