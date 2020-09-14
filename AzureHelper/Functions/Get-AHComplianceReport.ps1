@@ -24,6 +24,11 @@ Function Get-AHComplianceReport {
     Selected.Microsoft.Azure.Commands.ResourceManager.Cmdlets.SdkModels.PSResource
 .NOTES
     Author:  Paul Harrison
+.LINK
+    Get-AHSecurityReport
+    Add-AHPolicyToReport
+    Get-AHPolicyToReport
+    Remove-AHPolicyToReport
 #>
     [CmdletBinding()]
     param (
@@ -56,8 +61,6 @@ Function Get-AHComplianceReport {
                     $PolicyName = $PolicyName.substring(0, 35)
                 }
                 $ReportName = $ReportPath + (Get-AzContext).name.split('(')[0].replace(' ', '') + '-Security-' + $PolicyName + '.csv'
-
-                #Get-NonCompliantResources -PolicyDefinitionID $PolicyId | Export-Csv $ReportName -NoTypeInformation
                 Get-AHResourceCompliance -PolicyDefinitionID $PolicyId -Compliance NonCompliant | Export-Csv $ReportName -NoTypeInformation
             }
         }
