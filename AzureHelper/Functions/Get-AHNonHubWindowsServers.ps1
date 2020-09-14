@@ -30,6 +30,9 @@ function Get-AHNonHubWindowsServers {
     
     .NOTES
         Author:  Paul Harrison
+    .LINK
+        Get-AHSavingsReport
+        Get-
     #>
         [CmdletBinding()]
         param (
