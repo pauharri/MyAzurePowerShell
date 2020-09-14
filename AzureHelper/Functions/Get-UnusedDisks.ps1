@@ -1,5 +1,5 @@
 function Get-UnusedDisks {
-<#
+    <#
 .SYNOPSIS
     Gets a list of unused NICs in the environment.
 
