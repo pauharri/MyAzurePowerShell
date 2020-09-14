@@ -6,7 +6,7 @@
    ##    ##    ##    ##     ## ##                         ##    ##     ##  ##  ##    ##    ##    ## ##     ## ##     ## ##           ##  ##    ##    ##     ## ##       ##        ##    ##  ##       ##    ## ##     ##    ##    ##       ##     ## 
     ######     ##     #######  ##                         ##    ##     ## ####  ######      ######   #######  ########  ########    ####  ######     ########  ######## ##        ##     ## ########  ######  ##     ##    ##    ######## ########  
   
-    #Use the module here instead: https://github.com/pauharri/MyAzurePowerShell/tree/master/AzureHelper
+    #Use the module here instead: https://github.com/pauharri/AzureHelper
 
 
 function Invoke-AzureCommand {
